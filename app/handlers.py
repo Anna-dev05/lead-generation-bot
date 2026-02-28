@@ -5,10 +5,10 @@ from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 
-from app.states import LeadForm
-from app.keyboards import main_menu, phone_keyboard, confirm_keyboard
-from app.storage import save_lead
-from .sheets import append_lead_row
+from states import LeadForm
+from keyboards import main_menu, phone_keyboard, confirm_keyboard
+from storage import save_lead
+from sheets import append_lead_row
 
 # Инициализируем логгер для этого файла
 logger = logging.getLogger(__name__)
@@ -292,6 +292,7 @@ async def lead_confirm(
         reply_markup=main_menu()
     )
     await state.clear()
+
 
 
 
