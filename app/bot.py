@@ -1,16 +1,15 @@
-import asyncio
-import logging
 import sys
 import os
 
-# ПРИНУДИТЕЛЬНО ДОБАВЛЯЕМ ПУТИ (это уберет ошибки импорта на сервере)
+# Добавляем все возможные пути в память бота
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'app'))
 
-from aiogram import Bot, Dispatcher
 from app.config import load_config
 from app.handlers import router
 from app.sheets import get_worksheet
 from app.database import init_db
+
 
 async def main():
     # Настройка логов для Railway

@@ -23,3 +23,9 @@ def get_worksheet():
     client = gspread.authorize(creds)
     sheet = client.open_by_key(config.sheet_id)
     return sheet.get_worksheet(0)
+
+def append_lead_row(worksheet, created_at, name, phone, email, telegram, message, user_id, username):
+    worksheet.append_row(
+        [created_at, name, phone, email or "", telegram or "", message or "", str(user_id), username or ""],
+        value_input_option="USER_ENTERED",
+    )

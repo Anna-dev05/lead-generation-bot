@@ -8,7 +8,7 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemo
 from app.states import LeadForm
 from app.keyboards import main_menu, phone_keyboard, confirm_keyboard
 from app.storage import save_lead
-from app.sheets import append_lead_row
+from .sheets import append_lead_row
 
 # Инициализируем логгер для этого файла
 logger = logging.getLogger(__name__)
