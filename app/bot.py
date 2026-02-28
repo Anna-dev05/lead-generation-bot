@@ -1,14 +1,15 @@
 import sys
 import os
+import asyncio
+import logging
 
-# Добавляем все возможные пути в память бота
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'app'))
+sys.path.append(os.path.join(os.path.dirname(__file__), 'app'))
 
-from app.config import load_config
-from app.handlers import router
-from app.sheets import get_worksheet
-from app.database import init_db
+from aiogram import Bot, Dispatcher
+from config import load_config
+from handlers import router
+from sheets import get_worksheet
+from database import init_db
 
 
 async def main():
@@ -44,4 +45,5 @@ async def main():
         logger.error(f"❌ Ошибка при запуске: {e}", exc_info=True)
 
 if __name__ == "__main__":
+
     asyncio.run(main())
