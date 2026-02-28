@@ -1,3 +1,5 @@
+import os
+import json
 import gspread
 from gspread.exceptions import WorksheetNotFound
 from google.oauth2.service_account import Credentials
@@ -16,23 +18,23 @@ HEADERS = [
 ]
 
 
-def get_worksheet(sheet_id: str, creds_path: str, sheet_name: str):
-    """
-    Connect to Google Sheets and return worksheet by name.
-    If worksheet doesn't exist -> create it.
-    If worksheet is empty -> add headers.
-    """
-    creds = Credentials.from_service_account_file(creds_path, scopes=SCOPES)
+def get_worksheet():
+    # 1. Пытаемся достать текст ключа из переменной Railway
+    google_creds_json = os.getenv("GOOGLE_CREDS_JSON")
+    
+    if google_creds_json:
+        # СЛУЧАЙ ДЛЯ СЕРВЕРА: читаем данные прямо из памяти
+        creds_info = json.loads(google_creds_json)
+        creds = Credentials.from_service_account_info(creds_info, scopes=SCOPES)
+    else:
+        # СЛУЧАЙ ДЛЯ КОМПЬЮТЕРА: читаем из файла
+        # Используем путь из твоего конфига
+        creds = Credentials.from_service_account_file(config.google_creds_path, scopes=SCOPES)
+        
+    # Процесс авторизации
     client = gspread.authorize(creds)
-
-    spreadsheet = client.open_by_key(sheet_id)
-
-    try:
-        ws = spreadsheet.worksheet(sheet_name)
-    except WorksheetNotFound:
-        # Create a new worksheet (rows/cols can be adjusted)
-        ws = spreadsheet.add_worksheet(title=sheet_name, rows=2000, cols=len(HEADERS))
-
+    sheet = client.open_by_key(config.sheet_id)
+    return sheet.get_worksheet(0)
     _ensure_headers(ws)
     return ws
 
