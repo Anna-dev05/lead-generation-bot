@@ -3,83 +3,46 @@ import json
 import gspread
 from gspread.exceptions import WorksheetNotFound
 from google.oauth2.service_account import Credentials
+from app import config  # ИСПРАВЛЕНО: Добавили импорт конфига
 
-SCOPES = ["https://www.googleapis.com/auth/spreadsheets"]
-
-HEADERS = [
-    "created_at",
-    "name",
-    "phone",
-    "email",
-    "telegram",
-    "message",
-    "user_id",
-    "username",
+# ИСПРАВЛЕНО: Добавили Drive в SCOPES
+SCOPES = [
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/drive"
 ]
 
+HEADERS = [
+    "created_at", "name", "phone", "email", 
+    "telegram", "message", "user_id", "username",
+]
 
 def get_worksheet():
-    # 1. Пытаемся достать текст ключа из переменной Railway
     google_creds_json = os.getenv("GOOGLE_CREDS_JSON")
     
     if google_creds_json:
-        # СЛУЧАЙ ДЛЯ СЕРВЕРА: читаем данные прямо из памяти
         creds_info = json.loads(google_creds_json)
         creds = Credentials.from_service_account_info(creds_info, scopes=SCOPES)
     else:
-        # СЛУЧАЙ ДЛЯ КОМПЬЮТЕРА: читаем из файла
-        # Используем путь из твоего конфига
+        # Для работы на компьютере
         creds = Credentials.from_service_account_file(config.google_creds_path, scopes=SCOPES)
         
-    # Процесс авторизации
     client = gspread.authorize(creds)
+    
+    # ИСПРАВЛЕНО: Используем config.sheet_id правильно
     sheet = client.open_by_key(config.sheet_id)
-    return sheet.get_worksheet(0)
+    ws = sheet.get_worksheet(0)
+    
+    # Сначала проверяем заголовки, потом возвращаем лист
     _ensure_headers(ws)
     return ws
 
-
 def _ensure_headers(ws) -> None:
-    """
-    If the sheet is empty (no values) or first row is empty -> write headers.
-    """
     values = ws.get_all_values()
-    if not values:
-        ws.append_row(HEADERS, value_input_option="USER_ENTERED")
-        return
-
-    first_row = values[0] if values else []
-    if not any(cell.strip() for cell in first_row):
+    if not values or not any(values[0]):
         ws.update("A1", [HEADERS])
 
-
-def append_lead_row(
-    worksheet,
-    created_at: str,
-    name: str,
-    phone: str,
-    email: str,
-    telegram: str,
-    message: str,
-    user_id: int,
-    username: str | None,
-):
-    """
-    Append one lead row to the worksheet.
-
-    Expected columns:
-    created_at | name | phone | email | telegram | message | user_id | username
-    """
+def append_lead_row(worksheet, created_at, name, phone, email, telegram, message, user_id, username):
     worksheet.append_row(
-        [
-            created_at,
-            name,
-            phone,
-            email or "",
-            telegram or "",
-            message or "",
-            str(user_id),
-            username or "",
-        ],
+        [created_at, name, phone, email or "", telegram or "", message or "", str(user_id), username or ""],
         value_input_option="USER_ENTERED",
     )
