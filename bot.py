@@ -1,12 +1,7 @@
-import asyncio
-import logging
-
-from aiogram import Bot, Dispatcher
-
 from app.config import load_config
 from app.handlers import router
 from app.sheets import get_worksheet
-from app.storage import init_db  
+from app.database import init_db 
 
 
 async def main():
@@ -28,3 +23,4 @@ async def main():
     dp.include_router(router)
 
     await dp.start_polling(bot)
+
