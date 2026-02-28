@@ -19,11 +19,8 @@ async def main():
 
     dp.workflow_data["admin_id"] = config.admin_id
 
-    worksheet = get_worksheet(
-        sheet_id=config.sheet_id,
-        creds_path=config.google_creds_path,   # <-- важно
-        sheet_name=config.sheet_name
-    )
+    worksheet = get_worksheet() 
+    
     dp.workflow_data["worksheet"] = worksheet
 
     init_db()
@@ -31,8 +28,3 @@ async def main():
     dp.include_router(router)
 
     await dp.start_polling(bot)
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
-
