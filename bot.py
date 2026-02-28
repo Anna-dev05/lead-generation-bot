@@ -3,75 +3,72 @@ import logging
 import sys
 import os
 
-# --- БЛОК ИСПРАВЛЕНИЯ ПУТЕЙ (Критически важно для Railway) ---
-# Определяем путь к текущей папке и папке 'app'
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-APP_DIR = os.path.join(BASE_DIR, 'app')
+# --- ИСПРАВЛЕНИЕ ПУТЕЙ ИМПОРТА ---
+# Это заставляет Python видеть папку app и файлы внутри неё
+current_dir = os.path.dirname(os.path.abspath(__file__))
+if current_dir not in sys.path:
+    sys.path.append(current_dir)
 
-# Добавляем их в поиск, чтобы Python видел файлы внутри 'app' без ошибок
-if BASE_DIR not in sys.path:
-    sys.path.append(BASE_DIR)
-if APP_DIR not in sys.path:
-    sys.path.append(APP_DIR)
+app_path = os.path.join(current_dir, 'app')
+if app_path not in sys.path:
+    sys.path.append(app_path)
 
 from aiogram import Bot, Dispatcher
 
-# Пытаемся импортировать модули. Если не находит через app., пробует напрямую.
+# Умный импорт: пробует найти файлы внутри app
 try:
     from app.config import load_config
     from app.handlers import router
     from app.sheets import get_worksheet
     from app.database import init_db
-except ImportError:
+except (ImportError, ModuleNotFoundError):
     from config import load_config
     from handlers import router
     from sheets import get_worksheet
     from database import init_db
 
 async def main():
-    # Настройка логирования, чтобы ты видела всё в панели Railway
+    # Настройка логов для Railway (чтобы они отображались в панели)
     logging.basicConfig(
         level=logging.INFO,
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        format="%(asctime)s - %(levelname)s - %(message)s",
         stream=sys.stdout
     )
-    logger = logging.getLogger(__name__)
-    logger.info("🚀 ЗАПУСК БОТА...")
+    
+    logging.info("🚀 ЗАПУСК БОТА...")
 
     try:
-        # 1. Загрузка конфигурации
+        # Загружаем конфиг
         config = load_config()
         bot = Bot(token=config.bot_token)
         dp = Dispatcher()
 
-        # 2. Подключение к Google Таблице
-        logger.info("📊 Подключаемся к Google Sheets...")
+        # Подключаем Google Таблицы
+        logging.info("📊 Подключение к Google Sheets...")
         worksheet = get_worksheet()
         
-        # Передаем данные в хендлеры через workflow_data
+        # Передаем данные в хендлеры
         dp.workflow_data["admin_id"] = config.admin_id
         dp.workflow_data["worksheet"] = worksheet
 
-        # 3. Инициализация базы данных SQLite
-        logger.info("💾 Инициализация базы данных...")
+        # Инициализируем базу данных (теперь файл database.py должен быть создан!)
+        logging.info("💾 Инициализация базы данных...")
         init_db()
         
-        # 4. Регистрация обработчиков (handlers)
+        # Подключаем хендлеры
         dp.include_router(router)
 
-        logger.info("✅ БОТ УСПЕШНО ЗАПУЩЕН И ГОТОВ К РАБОТЕ!")
+        logging.info("✅ БОТ УСПЕШНО ЗАПУЩЕН!")
         
-        # Запуск бесконечного цикла опроса Telegram
+        # Запуск опроса Telegram
         await dp.start_polling(bot)
         
     except Exception as e:
-        logger.error(f"❌ КРИТИЧЕСКАЯ ОШИБКА ПРИ СТАРТЕ: {e}", exc_info=True)
+        logging.error(f"❌ КРИТИЧЕСКАЯ ОШИБКА: {e}", exc_info=True)
 
 if __name__ == "__main__":
-    try:
-        asyncio.run(main())
-    except (KeyboardInterrupt, SystemExit):
-        logging.info("Бот остановлен")
+    asyncio.run(main())
+
 
 
 
